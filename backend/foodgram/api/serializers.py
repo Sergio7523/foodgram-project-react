@@ -48,7 +48,7 @@ class WriteIngredientRecipeSerializer(ModelSerializer):
         validators=(
             MinValueValidator(
                 limit_value=MIN_INGREDIENT_AMOUNT,
-                message=(f'{MIN_INGREDIENT_AMOUNT} ингредиент минимум.')
+                message=(f'Минимум {MIN_INGREDIENT_AMOUNT} ингредиент.')
             ),
         )
     )
@@ -94,14 +94,14 @@ class ReadRecipeSerializer(ModelSerializer):
         fields = (
             'id',
             'tags',
-            'ingredients',
-            'name',
             'author',
-            'text',
-            'image',
-            'cooking_time',
+            'ingredients',
             'is_favorited',
             'is_in_shopping_cart',
+            'name',
+            'image',
+            'text',
+            'cooking_time',
         )
 
     def get_is_favorited(self, obj):
@@ -130,7 +130,7 @@ class WriteRecipeSerializer(ModelSerializer):
         validators=(
             MinValueValidator(
                 limit_value=MIN_COOKING_TIME,
-                message=(f'Минимум: {MIN_COOKING_TIME} минута')
+                message=(f'Минимальное время: {MIN_COOKING_TIME} минуты')
             ),
         )
     )
@@ -139,10 +139,10 @@ class WriteRecipeSerializer(ModelSerializer):
         model = Recipe
         fields = (
             'ingredients',
-            'name',
             'tags',
-            'text',
             'image',
+            'name',
+            'text',
             'cooking_time'
         )
 
@@ -163,7 +163,7 @@ class WriteRecipeSerializer(ModelSerializer):
                 ).exists()
             ):
                 raise serializers.ValidationError(
-                    {'errors': 'Одинаковые ингредиенты недопустимы'}
+                    {'errors': 'Нельзя добавить два одинаковых ингредиента!'}
                 )
             IngredientRecipe.objects.create(
                 recipe=recipe, ingredient=base_ingredient, amount=amount
@@ -192,7 +192,7 @@ class WriteRecipeSerializer(ModelSerializer):
                 ).exists()
             ):
                 raise serializers.ValidationError(
-                    {'errors': 'Одинаковые ингредиенты недопустимы'}
+                    {'errors': 'Нельзя добавить два одинаковых ингредиента!'}
                 )
             IngredientRecipe.objects.create(
                 recipe=instance, ingredient=base_ingredient, amount=amount
@@ -212,7 +212,7 @@ class FavoriteSerializer(ModelSerializer):
             UniqueTogetherValidator(
                 queryset=Favorite.objects.all(),
                 fields=('user', 'recipe'),
-                message='Рецепт уже есть в избранном.'
+                message='Данный рецепт уже есть в избранном.'
             ),
         )
 
@@ -221,7 +221,7 @@ class FavoriteSerializer(ModelSerializer):
         recipe = data.get('recipe')
         if Favorite.objects.filter(user=user, recipe=recipe).exists():
             raise serializers.ValidationError(
-                {'errors': 'Рецепт уже добавлен в избранное.'}
+                {'errors': 'Данный рецепт уже есть в избранном.'}
             )
         return data
 
@@ -229,24 +229,3 @@ class FavoriteSerializer(ModelSerializer):
         user = validated_data.get('user')
         recipe = validated_data.get('recipe')
         return Favorite.objects.create(user=user, recipe=recipe)
-
-
-class CartSerializer(ModelSerializer):
-    user = UserSerializer
-    recipe = ReadRecipeSerializer
-
-    class Meta:
-        model = Cart
-        fields = ('user', 'recipe')
-        validators = (
-            UniqueTogetherValidator(
-                queryset=Cart.objects.all(),
-                fields=('user', 'recipe'),
-                message='Рецепт уже добавлен в список покупок.'
-            ),
-        )
-
-    def create(self, validated_data):
-        user = validated_data.get('user')
-        recipe = validated_data.get('recipe')
-        return Cart.objects.create(user=user, recipe=recipe)

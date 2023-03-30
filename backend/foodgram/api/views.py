@@ -5,6 +5,7 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
+from rest_framework.validators import ValidationError
 
 from recipes.models import (
     Cart, Favorite, Ingredient, IngredientRecipe, Recipe, Tag
@@ -15,7 +16,6 @@ from api.filters import IngredientSearchFilter, RecipeFilter
 from api.paginations import CustomPagination
 from api.permissions import AuthorOrReadOnly
 from api.serializers import (
-    CartSerializer,
     FavoriteSerializer,
     IngredientSerializer,
     ReadRecipeSerializer,
@@ -51,24 +51,21 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if self.request.method in ('POST', 'PATCH', 'DELETE'):
             return WriteRecipeSerializer
         return ReadRecipeSerializer
+    
+    def add_recipe(self, model, request, pk):
+        recipe = get_object_or_404(Recipe, pk=pk)
+        user = self.request.user
+        if model.objects.filter(recipe=recipe, user=user).exists():
+            raise ValidationError('Такой рецепт уже существует!')
+        model.objects.create(recipe=recipe, user=user)
+        serializer = RecipesBriefSerializer(recipe)
+        return Response(data=serializer.data, status=status.HTTP_201_CREATED)
 
-    def add_or_del_object(self, model, pk, serializer, errors):
-        recipe = get_object_or_404(Recipe, id=pk)
-        serializer = serializer(
-            data={'user': self.request.user.id, 'recipe': recipe.id}
-        )
-        if self.request.method == 'POST':
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            serializer = RecipesBriefSerializer(recipe)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        object = model.objects.filter(user=self.request.user, recipe=recipe)
-        if not object.exists():
-            return Response(
-                {'errors': errors},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        object.delete()
+    def delete_recipe(self, model, request, pk):
+        recipe = get_object_or_404(Recipe, pk=pk)
+        user = self.request.user
+        obj = get_object_or_404(model, recipe=recipe, user=user)
+        obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
@@ -78,9 +75,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
         url_name='favorite',
         permission_classes=(IsAuthenticated,)
     )
-    def favorite(self, request, pk):
-        errors = 'В избранном нет рецепта.'
-        return self.add_or_del_object(Favorite, pk, FavoriteSerializer, errors)
+    def favorite(self, request, pk=None):
+        if request.method == 'POST':
+            return self.add_recipe(Favorite, request, pk)
+        else:
+            return self.delete_recipe(Favorite, request, pk)
 
     @action(
         detail=True,
@@ -90,8 +89,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=(IsAuthenticated,)
     )
     def shopping_cart(self, request, pk):
-        errors = 'В списке покупок нет рецепта.'
-        return self.add_or_del_object(Cart, pk, CartSerializer, errors)
+        if request.method == 'POST':
+            return self.add_recipe(Cart, request, pk)
+        else:
+            return self.delete_recipe(Cart, request, pk)
 
     @action(
         detail=False,
