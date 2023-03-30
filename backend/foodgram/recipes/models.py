@@ -50,7 +50,6 @@ class Tag(models.Model):
     )
 
     class Meta:
-        ordering = ['-id']
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
 
@@ -98,9 +97,13 @@ class Recipe(models.Model):
             ),
         )
     )
+    pub_date = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата публикации'
+    )
 
     class Meta:
-        ordering = ('-id',)
+        ordering = ('-pub_date',)
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
 
@@ -132,7 +135,6 @@ class IngredientRecipe(models.Model):
     )
 
     class Meta:
-        ordering = ('-id',)
         verbose_name = 'Количество ингредиентов'
         verbose_name_plural = 'Количество ингредиентов'
         constraints = (
@@ -161,7 +163,6 @@ class TagRecipe(models.Model):
     )
 
     class Meta:
-        ordering = ('-id',)
         verbose_name = 'Рецепты с тегами'
         verbose_name_plural = 'Рецепты с тегами'
 
@@ -184,7 +185,6 @@ class Favorite(models.Model):
     )
 
     class Meta:
-        ordering = ('-id',)
         constraints = (
             models.UniqueConstraint(
                 fields=('user', 'recipe'), name='favorite_unique'),
@@ -211,7 +211,6 @@ class Cart(models.Model):
     )
 
     class Meta:
-        ordering = ('-id',)
         constraints = (
             models.UniqueConstraint(
                 fields=('user', 'recipe'), name='cart_unique'),
