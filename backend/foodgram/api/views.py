@@ -14,7 +14,7 @@ from recipes.utils import convert_txt
 from users.serializers import RecipesBriefSerializer
 from api.filters import IngredientSearchFilter, RecipeFilter
 from api.paginations import CustomPagination
-from api.permissions import AuthorOrReadOnly
+from api.permissions import AuthorOrAdminOrReadOnly
 from api.serializers import (
     FavoriteSerializer,
     IngredientSerializer,
@@ -25,6 +25,7 @@ from api.serializers import (
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
+    """Вьюсет ингридиентов."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     filter_backends = (DjangoFilterBackend, IngredientSearchFilter,)
@@ -34,6 +35,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
+    """Вьюсет тэгов."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = (AllowAny,)
@@ -41,18 +43,21 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
+    """Вьюсет рецептов."""
     queryset = Recipe.objects.all()
     filter_backends = (DjangoFilterBackend,)
     paginations_class = CustomPagination
-    permission_classes = (AuthorOrReadOnly,)
+    permission_classes = (AuthorOrAdminOrReadOnly,)
     filterset_class = RecipeFilter
 
     def get_serializer_class(self):
+        """Сериалайзер в зависимости от метода."""
         if self.request.method in ('POST', 'PATCH', 'DELETE'):
             return WriteRecipeSerializer
         return ReadRecipeSerializer
-    
+
     def add_recipe(self, model, request, pk):
+        """Добавление рецепта."""
         recipe = get_object_or_404(Recipe, pk=pk)
         user = self.request.user
         if model.objects.filter(recipe=recipe, user=user).exists():
@@ -62,6 +67,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return Response(data=serializer.data, status=status.HTTP_201_CREATED)
 
     def delete_recipe(self, model, request, pk):
+        """Удаление рецепта рецепта."""
         recipe = get_object_or_404(Recipe, pk=pk)
         user = self.request.user
         obj = get_object_or_404(model, recipe=recipe, user=user)
@@ -76,6 +82,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=(IsAuthenticated,)
     )
     def favorite(self, request, pk=None):
+        """Добавление и удаление рецептов в избранное."""
         if request.method == 'POST':
             return self.add_recipe(Favorite, request, pk)
         else:
@@ -89,6 +96,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=(IsAuthenticated,)
     )
     def shopping_cart(self, request, pk):
+        """Добавление и удаление рецептов в список покупок."""
         if request.method == 'POST':
             return self.add_recipe(Cart, request, pk)
         else:
@@ -102,6 +110,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=(IsAuthenticated,)
     )
     def download_shopping_cart(self, request):
+        """Скачать список покупок."""
         ingredients = IngredientRecipe.objects.filter(
             recipe__carts__user=request.user
         ).values(
@@ -113,6 +122,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
 
 class FavoriteViewSet(viewsets.ModelViewSet):
+    """Вьюсет избранного."""
     serializer_class = FavoriteSerializer
     permission_classes = (IsAuthenticated,)
 

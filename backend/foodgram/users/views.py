@@ -7,11 +7,23 @@ from rest_framework.response import Response
 
 from api.paginations import CustomPagination
 from users.models import Follow, User
-from users.serializers import FollowSerializer, ResponeSubscribeSerializer
+from users.serializers import (
+    FollowSerializer,
+    ResponeSubscribeSerializer,
+    UserSerializer,
+    CreateUserSerializer
+)
 
 
 class CustomUserViewSet(UserViewSet):
     pagination_class = CustomPagination
+
+    def get_serializer_class(self):
+        if self.request.method in ('POST', 'PATCH'):
+            return CreateUserSerializer
+        if self.request.method == 'GET':
+            return UserSerializer
+        return ResponeSubscribeSerializer
 
     @action(
         detail=True,
@@ -31,7 +43,8 @@ class CustomUserViewSet(UserViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
             serializer = ResponeSubscribeSerializer(
-                author, context={'request': request})
+                author, context={'request': request}
+                )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         follow = Follow.objects.filter(user=user, author=author)

@@ -1,6 +1,7 @@
 from colorfield.fields import ColorField
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import UniqueConstraint
 
 from foodgram.settings import (
     TAG_NAME_MAX_LENGTH,
@@ -25,6 +26,12 @@ class Ingredient(models.Model):
     )
 
     class Meta:
+        constraints = (
+            UniqueConstraint(
+                fields=('name', 'measurement_unit'),
+                name='unique_ingredient_measurement_unit'
+            ),
+        )
         ordering = ('name',)
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
@@ -187,7 +194,8 @@ class Favorite(models.Model):
     class Meta:
         constraints = (
             models.UniqueConstraint(
-                fields=('user', 'recipe'), name='favorite_unique'),
+                fields=('user', 'recipe'), name='favorite_unique'
+            ),
         )
         verbose_name = 'Избранное'
         verbose_name_plural = 'Избранные'
@@ -213,7 +221,8 @@ class Cart(models.Model):
     class Meta:
         constraints = (
             models.UniqueConstraint(
-                fields=('user', 'recipe'), name='cart_unique'),
+                fields=('user', 'recipe'), name='cart_unique'
+            ),
         )
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Список покупок'
