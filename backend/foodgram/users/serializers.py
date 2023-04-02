@@ -17,7 +17,14 @@ class UserSerializer(ModelSerializer):
 
     class Meta:
         model = User
-        fields = '__all__'
+        fields = (
+            'id',
+            'email',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed'
+        )
 
     def get_is_subscribed(self, obj):
         """Подписка на автора."""
@@ -60,15 +67,15 @@ class FollowSerializer(ModelSerializer):
             ),
         )
 
-    def validate(self, data):
+    def validate_author(self, value):
         """Валидация данных."""
-        author = data.get('author')
-        user = data.get('user')
+        author = value
+        user = self.context.get('request').user
         if user == author:
             raise serializers.ValidationError(
                 {'errors': 'Нельзя подписаться на самого себя.'}
             )
-        return data
+        return value
 
     def create(self, validated_data):
         """Создание записи подписки."""
@@ -85,7 +92,7 @@ class RecipesBriefSerializer(ModelSerializer):
         read_only_fields = fields
 
 
-class ResponeSubscribeSerializer(ModelSerializer):
+class ResponeSubscribeSerializer(UserSerializer):
     """Сериализатор подписки."""
     is_subscribed = serializers.SerializerMethodField(
         method_name='get_is_subscribed'
@@ -95,30 +102,14 @@ class ResponeSubscribeSerializer(ModelSerializer):
         method_name='get_recipes_count'
     )
 
-    class Meta:
+    class Meta(UserSerializer.Meta):
         model = User
-        fields = (
-            'id',
-            'first_name',
-            'last_name',
-            'username',
-            'email',
-            'is_subscribed',
-            'recipes',
-            'recipes_count'
-        )
-
-    def get_is_subscribed(self, obj):
-        """Статус подписки на автора."""
-        request = self.context.get('request')
-        if request is None or request.user.is_anonymous:
-            return False
-        return Follow.objects.filter(user=request.user, author=obj).exists()
+        fields = UserSerializer.Meta.fields + ('recipes', 'recipes_count')
 
     def get_recipes(self, obj):
         """Получение списка рецептов автора."""
         request = self.context.get('request')
-        recipes_limit = request.POST.get('recipes_limit') or LIMIT
+        recipes_limit = request.POST.get('recipes_limit', LIMIT)
         queryset = obj.recipes.all()
         if recipes_limit:
             queryset = queryset[:(recipes_limit)]

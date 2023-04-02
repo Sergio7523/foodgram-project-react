@@ -35,7 +35,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
-    """Вьюсет тэгов."""
+    """Вьюсет тегов."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = (AllowAny,)
@@ -51,7 +51,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filterset_class = RecipeFilter
 
     def get_serializer_class(self):
-        """Сериалайзер в зависимости от метода."""
+        """Выбор сериалайзера в зависимости от запроса."""
         if self.request.method in ('POST', 'PATCH', 'DELETE'):
             return WriteRecipeSerializer
         return ReadRecipeSerializer
@@ -60,14 +60,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Добавление рецепта."""
         recipe = get_object_or_404(Recipe, pk=pk)
         user = self.request.user
-        if model.objects.filter(recipe=recipe, user=user).exists():
+        _, created = model.objects.get_or_create(recipe=recipe, user=user)
+        if not created:
             raise ValidationError('Такой рецепт уже существует!')
-        model.objects.create(recipe=recipe, user=user)
         serializer = RecipesBriefSerializer(recipe)
         return Response(data=serializer.data, status=status.HTTP_201_CREATED)
 
     def delete_recipe(self, model, request, pk):
-        """Удаление рецепта рецепта."""
+        """Удаление рецепта."""
         recipe = get_object_or_404(Recipe, pk=pk)
         user = self.request.user
         obj = get_object_or_404(model, recipe=recipe, user=user)
@@ -127,6 +127,7 @@ class FavoriteViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
+        """Информация о рецептах в избранном."""
         recipe_id = self.kwargs.get('recipe_id')
         recipe = get_object_or_404(Recipe, id=recipe_id)
         return recipe.favorites.all()

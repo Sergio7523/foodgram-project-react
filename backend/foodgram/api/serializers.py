@@ -2,7 +2,11 @@ from django.db import transaction
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
-from rest_framework.validators import UniqueTogetherValidator, UniqueValidator
+from rest_framework.validators import (
+    UniqueTogetherValidator,
+    UniqueValidator,
+    ValidationError
+)
 
 from foodgram.settings import (
     TAG_NAME_MAX_LENGTH,
@@ -143,11 +147,13 @@ class WriteRecipeSerializer(ModelSerializer):
         for ingredient in ingredients:
             amount = ingredient['amount']
             ingredient = ingredient['id']
-            IngredientRecipe.objects.create(
+            _, created = IngredientRecipe.objects.get_or_create(
                 recipe=recipe,
                 ingredient=ingredient,
                 amount=amount
             )
+            if not created:
+                raise ValidationError('Такой ингредиент уже существует!')
 
     @transaction.atomic
     def create(self, validated_data):

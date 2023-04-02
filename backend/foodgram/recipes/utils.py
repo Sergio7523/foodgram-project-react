@@ -2,6 +2,7 @@ from django.http import HttpResponse
 
 
 def convert_txt(shop_list):
+    """Создание файла для загрузки."""
     lines = []
     for ing in shop_list:
         name = ing['ingredient__name']

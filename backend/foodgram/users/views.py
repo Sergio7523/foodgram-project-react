@@ -16,9 +16,11 @@ from users.serializers import (
 
 
 class CustomUserViewSet(UserViewSet):
+    """Вьюсет пользователей."""
     pagination_class = CustomPagination
 
     def get_serializer_class(self):
+        """Выбор сериалайзера в зависимости от запроса."""
         if self.request.method in ('POST', 'PATCH'):
             return CreateUserSerializer
         if self.request.method == 'GET':
@@ -33,18 +35,21 @@ class CustomUserViewSet(UserViewSet):
         permission_classes=(IsAuthenticated,),
     )
     def subscribe(self, request, id):
+        """Создание и удаление подписки."""
         user = request.user
         author = get_object_or_404(User, id=id)
         serializer = FollowSerializer(
-            data={'user': user.id, 'author': author.id}
+            data={'user': user.id, 'author': author.id},
+            context={'request': request}
         )
 
         if request.method == 'POST':
             serializer.is_valid(raise_exception=True)
             serializer.save()
             serializer = ResponeSubscribeSerializer(
-                author, context={'request': request}
-                )
+                author,
+                context={'request': request}
+            )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         follow = Follow.objects.filter(user=user, author=author)
@@ -66,6 +71,7 @@ class CustomUserViewSet(UserViewSet):
         permission_classes=(IsAuthenticated,),
     )
     def subscriptions(self, request):
+        """Информация о подписке."""
         user = request.user
         queryset = User.objects.filter(following__user=user)
         pages = self.paginate_queryset(queryset)

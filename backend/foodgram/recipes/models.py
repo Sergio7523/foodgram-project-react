@@ -16,6 +16,7 @@ from users.models import User
 
 
 class Ingredient(models.Model):
+    """Модель ингредиентов."""
     name = models.CharField(
         max_length=INGREDIENT_NAME_MAX_LENGTH,
         verbose_name='Название ингредиента',
@@ -41,6 +42,7 @@ class Ingredient(models.Model):
 
 
 class Tag(models.Model):
+    """Модель тегов."""
     name = models.CharField(
         max_length=TAG_NAME_MAX_LENGTH,
         unique=True,
@@ -65,6 +67,7 @@ class Tag(models.Model):
 
 
 class Recipe(models.Model):
+    """Модель рецептов."""
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -119,6 +122,7 @@ class Recipe(models.Model):
 
 
 class IngredientRecipe(models.Model):
+    """Модель ингридеентов в рецепте."""
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
@@ -156,6 +160,7 @@ class IngredientRecipe(models.Model):
 
 
 class TagRecipe(models.Model):
+    """Модель тегов рецептов."""
     tag = models.ForeignKey(
         Tag,
         on_delete=models.CASCADE,
@@ -178,6 +183,7 @@ class TagRecipe(models.Model):
 
 
 class Favorite(models.Model):
+    """Модель избранных рецептов."""
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -205,6 +211,7 @@ class Favorite(models.Model):
 
 
 class Cart(models.Model):
+    """Модель списка покупок."""
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,

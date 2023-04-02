@@ -10,6 +10,7 @@ from foodgram.settings import (
 
 
 class User(AbstractUser):
+    """Модель пользователя."""
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ('first_name', 'last_name', 'username')
     username = models.CharField(
@@ -39,6 +40,7 @@ class User(AbstractUser):
 
 
 class Follow(models.Model):
+    """Модель подписки."""
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
