@@ -9,6 +9,13 @@ from recipes.models import Recipe
 from users.models import Follow, User
 
 
+FIELDS = (
+        'id',
+        'email',
+        'username',
+        'first_name',
+        'last_name',
+)
 class UserSerializer(ModelSerializer):
     """Сериализатор для получения информации о пользователе."""
     is_subscribed = serializers.SerializerMethodField(
@@ -17,14 +24,7 @@ class UserSerializer(ModelSerializer):
 
     class Meta:
         model = User
-        fields = (
-            'id',
-            'email',
-            'username',
-            'first_name',
-            'last_name',
-            'is_subscribed'
-        )
+        fields = FIELDS + ('is_subscribed',)
 
     def get_is_subscribed(self, obj):
         """Подписка на автора."""
@@ -45,9 +45,7 @@ class CreateUserSerializer(UserCreateSerializer):
 
     class Meta:
         model = User
-        fields = (
-            'id', 'first_name', 'last_name', 'username', 'email', 'password'
-        )
+        fields = FIELDS + ('password',)
         extra_kwargs = {'password': {'write_only': True}}
 
 
