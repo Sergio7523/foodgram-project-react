@@ -10,12 +10,14 @@ from users.models import Follow, User
 
 
 FIELDS = (
-        'id',
-        'email',
-        'username',
-        'first_name',
-        'last_name',
+    'id',
+    'email',
+    'username',
+    'first_name',
+    'last_name',
 )
+
+
 class UserSerializer(ModelSerializer):
     """Сериализатор для получения информации о пользователе."""
     is_subscribed = serializers.SerializerMethodField(
