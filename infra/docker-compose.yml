@@ -19,7 +19,7 @@ services:
       - .env
 
   frontend:
-    image: sergio7523/foodgram_backend:latest
+    image: sergio7523/foodgram_frontend:latest
     volumes:
       - ../frontend/:/app/result_build/
     depends_on:
