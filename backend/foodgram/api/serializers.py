@@ -51,14 +51,7 @@ class WriteIngredientRecipeSerializer(ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all()
     )
-    amount = serializers.IntegerField(
-        validators=(
-            MinValueValidator(
-                limit_value=MIN_INGREDIENT_AMOUNT,
-                message=(f'{MIN_INGREDIENT_AMOUNT} минимум')
-            ),
-        )
-    )
+    amount = serializers.IntegerField()
 
     class Meta:
         model = IngredientRecipe
@@ -139,14 +132,7 @@ class WriteRecipeSerializer(ModelSerializer):
         many=True, queryset=Tag.objects.all()
     )
     image = Base64ImageField()
-    cooking_time = serializers.IntegerField(
-        validators=(
-            MinValueValidator(
-                limit_value=MIN_COOKING_TIME,
-                message=(f'Не меньше {MIN_COOKING_TIME} минуты')
-            ),
-        )
-    )
+    cooking_time = serializers.IntegerField()
 
     class Meta:
         model = Recipe
@@ -159,10 +145,16 @@ class WriteRecipeSerializer(ModelSerializer):
             'cooking_time'
         )
 
+    def validate_cooking_time(self, value):
+        if value <= 0:
+            raise ValidationError(f'{MIN_COOKING_TIME} минимум')
+
     def create_ingredient_amount(self, ingredients, recipe):
         """Создание записей ингредиент - рецепт - количество."""
         for ingredient in ingredients:
             amount = ingredient['amount']
+            if amount <= 0:
+                raise ValidationError(f'минимум {MIN_INGREDIENT_AMOUNT}')
             ingredient = ingredient['id']
             _, created = IngredientRecipe.objects.get_or_create(
                 recipe=recipe,
