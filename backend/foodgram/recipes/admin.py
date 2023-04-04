@@ -31,12 +31,18 @@ class TagAdmin(admin.ModelAdmin):
 
 
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'author', 'name',)
+    list_display = ('pk', 'author', 'name', 'get_tags', 'count_favorites')
     list_filter = ('tags',)
-    search_fields = ('name', 'author__username', 'author__email')
+    search_fields = ('name', 'author__username', 'author__email', 'tags__name')
     empty_value_display = '-пусто-'
     filter_vertical = ('tags',)
     inlines = (TagRecipeInline, IngredientRecipeInline,)
+
+    def count_favorites(self, obj):
+        return obj.favorites.count()
+
+    def get_tags(self, obj):
+        return ', '.join(tag.name for tag in obj.tags.all())
 
 
 class FavoriteAdmin(admin.ModelAdmin):
