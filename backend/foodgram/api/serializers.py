@@ -1,3 +1,4 @@
+from django.core.validators import MinValueValidator
 from django.db import transaction
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
@@ -11,6 +12,8 @@ from rest_framework.validators import (
 from foodgram.settings import (
     TAG_NAME_MAX_LENGTH,
     TAG_SLUG_MAX_LENGTH,
+    MIN_COOKING_TIME,
+    MIN_INGREDIENT_AMOUNT
 )
 from recipes.models import (
     Cart,
@@ -48,7 +51,14 @@ class WriteIngredientRecipeSerializer(ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all()
     )
-    amount = serializers.IntegerField()
+    amount = serializers.IntegerField(
+        validators=(
+            MinValueValidator(
+                limit_value=MIN_INGREDIENT_AMOUNT,
+                message=(f'{MIN_INGREDIENT_AMOUNT} минимум')
+            ),
+        )
+    )
 
     class Meta:
         model = IngredientRecipe
@@ -129,7 +139,14 @@ class WriteRecipeSerializer(ModelSerializer):
         many=True, queryset=Tag.objects.all()
     )
     image = Base64ImageField()
-    cooking_time = serializers.IntegerField()
+    cooking_time = serializers.IntegerField(
+        validators=(
+            MinValueValidator(
+                limit_value=MIN_COOKING_TIME,
+                message=(f'Не меньше {MIN_COOKING_TIME} минуты')
+            ),
+        )
+    )
 
     class Meta:
         model = Recipe
