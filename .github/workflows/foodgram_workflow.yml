@@ -42,7 +42,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }} 
       - name: Push to Docker Hub
         uses: docker/build-push-action@v2
-          with:
+        with:
           context: ./backend/foodgram
           file: ./backend/foodgram/Dockerfile
           push: true
