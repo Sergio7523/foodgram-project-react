@@ -145,15 +145,19 @@ class WriteRecipeSerializer(ModelSerializer):
         )
 
     def validate_cooking_time(self, value):
-        if value <= 0:
-            raise ValidationError(f'{MIN_COOKING_TIME} минимум')
+        if value < MIN_COOKING_TIME:
+            raise ValidationError(
+                f'Време приготовления минимум {MIN_COOKING_TIME} минута'
+            )
 
     def create_ingredient_amount(self, ingredients, recipe):
         """Создание записей ингредиент - рецепт - количество."""
         for ingredient in ingredients:
             amount = ingredient['amount']
-            if amount <= 0:
-                raise ValidationError(f'минимум {MIN_INGREDIENT_AMOUNT}')
+            if amount < MIN_INGREDIENT_AMOUNT:
+                raise ValueError(
+                    f'Количество ингредиента минимум {MIN_INGREDIENT_AMOUNT}'
+                )
             ingredient = ingredient['id']
             _, created = IngredientRecipe.objects.get_or_create(
                 recipe=recipe,
@@ -161,7 +165,7 @@ class WriteRecipeSerializer(ModelSerializer):
                 amount=amount
             )
             if not created:
-                raise ValidationError('Такой ингредиент уже существует!')
+                raise ValidationError('Такой ингредиент уже есть.')
 
     @transaction.atomic
     def create(self, validated_data):

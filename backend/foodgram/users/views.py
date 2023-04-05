@@ -10,22 +10,12 @@ from users.models import Follow, User
 from users.serializers import (
     FollowSerializer,
     ResponeSubscribeSerializer,
-    UserSerializer,
-    CreateUserSerializer
 )
 
 
 class CustomUserViewSet(UserViewSet):
     """Вьюсет пользователей."""
     pagination_class = CustomPagination
-
-    def get_serializer_class(self):
-        """Выбор сериалайзера в зависимости от запроса."""
-        if self.request.method in ('POST', 'PATCH'):
-            return CreateUserSerializer
-        if self.request.method == 'GET':
-            return UserSerializer
-        return ResponeSubscribeSerializer
 
     @action(
         detail=True,
