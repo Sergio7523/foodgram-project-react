@@ -8,7 +8,7 @@ services:
       - .env
 
   backend:
-    image: sergio7523/foodgram_backend:latest
+    build: ../backend/foodgram
     restart: always
     volumes:
       - static_value:/app/static/
@@ -19,7 +19,7 @@ services:
       - .env
 
   frontend:
-    image: sergio7523/foodgram_frontend:latest
+    build: ../frontend
     volumes:
       - ../frontend/:/app/result_build/
     depends_on:

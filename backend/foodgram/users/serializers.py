@@ -1,3 +1,4 @@
+from django.core.validators import RegexValidator
 from rest_framework import serializers
 from rest_framework.serializers import CharField, EmailField, ModelSerializer
 from rest_framework.validators import UniqueTogetherValidator, UniqueValidator
@@ -39,10 +40,16 @@ class UserSerializer(ModelSerializer):
 class CreateUserSerializer(UserCreateSerializer):
     """Сериализатор для создания пользователя."""
     username = CharField(
-        validators=[UniqueValidator(queryset=User.objects.all())]
+        validators=(
+            UniqueValidator(queryset=User.objects.all()),
+            RegexValidator(
+                regex=r'^[\w.@+-]+$',
+                message='Недопустимые символы в имени пользователя'
+            )
+        )
     )
     email = EmailField(
-        validators=[UniqueValidator(queryset=User.objects.all())]
+        validators=(UniqueValidator(queryset=User.objects.all()),)
     )
 
     class Meta:

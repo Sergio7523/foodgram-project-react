@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import UniqueConstraint
 
@@ -16,6 +17,12 @@ class User(AbstractUser):
     username = models.CharField(
         max_length=USERNAME_MAX_LENGTH,
         unique=True,
+        validators=(
+            RegexValidator(
+                regex=r'^[\w.@+-]+$',
+                message='Недопустимые символы в имени пользователя'
+            ),
+        )
     )
     first_name = models.CharField(
         max_length=FIRST_AND_LAST_NAME_MAX_LENGTH,

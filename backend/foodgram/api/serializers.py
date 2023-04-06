@@ -1,3 +1,4 @@
+from django.core.validators import MinValueValidator
 from django.db import transaction
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
@@ -50,7 +51,14 @@ class WriteIngredientRecipeSerializer(ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all()
     )
-    amount = serializers.IntegerField()
+    amount = serializers.IntegerField(
+        validators=(
+            MinValueValidator(
+                MIN_INGREDIENT_AMOUNT,
+                message=(f'{MIN_INGREDIENT_AMOUNT} ингредиент минимум.')
+            ),
+        )
+    )
 
     class Meta:
         model = IngredientRecipe
@@ -131,7 +139,14 @@ class WriteRecipeSerializer(ModelSerializer):
         many=True, queryset=Tag.objects.all()
     )
     image = Base64ImageField()
-    cooking_time = serializers.IntegerField()
+    cooking_time = serializers.IntegerField(
+        validators=(
+            MinValueValidator(
+                MIN_COOKING_TIME,
+                message=(f'Минимум: {MIN_COOKING_TIME} минута')
+            ),
+        )
+    )
 
     class Meta:
         model = Recipe
@@ -144,20 +159,10 @@ class WriteRecipeSerializer(ModelSerializer):
             'cooking_time'
         )
 
-    def validate_cooking_time(self, value):
-        if value < MIN_COOKING_TIME:
-            raise ValidationError(
-                f'Време приготовления минимум {MIN_COOKING_TIME} минута'
-            )
-
     def create_ingredient_amount(self, ingredients, recipe):
         """Создание записей ингредиент - рецепт - количество."""
         for ingredient in ingredients:
             amount = ingredient['amount']
-            if amount < MIN_INGREDIENT_AMOUNT:
-                raise ValueError(
-                    f'Количество ингредиента минимум {MIN_INGREDIENT_AMOUNT}'
-                )
             ingredient = ingredient['id']
             _, created = IngredientRecipe.objects.get_or_create(
                 recipe=recipe,

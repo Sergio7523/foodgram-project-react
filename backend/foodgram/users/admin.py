@@ -1,13 +1,14 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
+from foodgram.settings import EMPTY_VALUE_DISPLAY
 from users.models import Follow, User
 
 
 class UserAdmin(UserAdmin):
     list_display = ('first_name', 'last_name', 'username', 'email')
     search_fields = ('username', 'email')
-    empty_value_display = '-пусто-'
+    empty_value_display = EMPTY_VALUE_DISPLAY
 
 
 class FollowAdmin(admin.ModelAdmin):
@@ -18,7 +19,7 @@ class FollowAdmin(admin.ModelAdmin):
         'user__username',
         'user__email',
     )
-    empty_value_display = '-пусто-'
+    empty_value_display = EMPTY_VALUE_DISPLAY
 
 
 admin.site.register(User, UserAdmin)
