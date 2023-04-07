@@ -2,6 +2,7 @@
 - Python 3.7
 - Django 3.2
 - Djangorestframework 3.13.1
+- Docker
 ___
 
 ## *Описание проекта*
