@@ -12,7 +12,7 @@ ___
 
 
 ## *Запуск проекта в контейнере*
-Для запуска проекта в контейнерах у Вас должен быть установлен [Docker](https://www.docker.com/).
+Скачать и установить [Docker](https://www.docker.com/).
 Зайти в папку infra и выполнить команды:
 - docker-compose up -d
 - docker-compose exec backend python manage.py makemigrations
