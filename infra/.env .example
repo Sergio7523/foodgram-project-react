@@ -1,5 +1,5 @@
 SECRET_KEY = 'put your secret key here'
-DEBUG = 'True / False'
+DEBUG =  0 / 1   # 0 False , 1 True
 DB_ENGINE='put your DB ENGINE here'
 DB_NAME='put your db name here'
 POSTGRES_USER='put your db user here'
